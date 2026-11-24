@@ -19,16 +19,23 @@ jobs:
           ndk-version: r26d
 
       - name: Build library
+        shell: bash
         run: |
           mkdir -p build
+
+          AUTO=$(find . -type f -name autocatch.cpp | head -n 1)
+          MENU=$(find . -type f -name menu.cpp | head -n 1)
+
+          if [ -z "$AUTO" ] || [ -z "$MENU" ]; then
+            echo "Source files missing!"
+            find . -type f
+            exit 1
+          fi
+
           $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++ \
             -std=c++17 -shared -fPIC -O2 \
-            -fvisibility=hidden \
             -o build/libNickoyclient.so \
-            Nickoyclient-fixed/autocatch.cpp \
-            Nickoyclient-fixed/menu.cpp \
-            -llog -ldl \
-            -Wl,--no-undefined
+            "$AUTO" "$MENU" -llog -ldl
 
       - name: Upload library
         uses: actions/upload-artifact@v4
