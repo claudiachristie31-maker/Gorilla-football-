@@ -1,0 +1,33 @@
+name: Build Android ARM64 Library
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get source
+        uses: actions/checkout@v4
+
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+
+      - name: Build library
+        run: |
+          mkdir -p build
+          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++ \
+            -std=c++17 -shared -fPIC -O2 \
+            -o build/libNickoyclient.so \
+            autocatch.cpp menu.cpp -llog -ldl
+
+      - name: Upload library
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nickoyclient-android-arm64
+          path: build/libNickoyclient.so
