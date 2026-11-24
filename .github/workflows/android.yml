@@ -1,37 +1,15 @@
-name: Build Android ARM64 Library
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r26d
-
-      - name: Extract source
+      - name: Find and extract source
         run: |
-          unzip -o "Nickoyclient-fixed-source(2).zip" -d source
+          ZIP=$(find . -type f -iname '*Nickoyclient*source*.zip' -print -quit)
+
+          if [ -z "$ZIP" ]; then
+            echo "ERROR: Source ZIP not found."
+            echo "Files currently in repository:"
+            find . -maxdepth 4 -type f
+            exit 1
+          fi
+
+          echo "Found source: $ZIP"
+          mkdir -p source
+          unzip -o "$ZIP" -d source
           ls -R source
-
-      - name: Build library
-        run: |
-          cd source/Nickoyclient-fixed
-          chmod +x BUILD.sh
-          ./BUILD.sh
-          mkdir -p ../../build
-          cp libNickoyclient.so ../../build/
-
-      - name: Upload library
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nickoyclient-android-arm64
-          path: build/libNickoyclient.so
