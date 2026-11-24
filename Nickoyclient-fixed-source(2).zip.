@@ -1,0 +1,20 @@
+      - name: Extract source
+        run: |
+          unzip -o Nickoyclient-fixed-source\(2\).zip -d source
+
+      - name: Build library
+        run: |
+          mkdir -p build
+
+          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang++ \
+            -std=c++17 -shared -fPIC -O2 \
+            -o build/libNickoyclient.so \
+            source/Nickoyclient-fixed/autocatch.cpp \
+            source/Nickoyclient-fixed/menu.cpp \
+            -llog -ldl
+
+      - name: Upload library
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nickoyclient-android-arm64
+          path: build/libNickoyclient.so
